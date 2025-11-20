@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  whatsapp-helper:
+    image: whatsapp-helper:latest
+    hostname: whatsapp-helper-container
+    volumes:
+      - ./docker_dir:/app/auth
+    stdin_open: true
+    tty: true
+    restart: always
