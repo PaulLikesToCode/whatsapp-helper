@@ -1,3 +1,7 @@
 node_modules/
 docker_dir/
 !docker_dir/README.md
+logs/
+model/training_data/
+model/test_data/
+*.joblib

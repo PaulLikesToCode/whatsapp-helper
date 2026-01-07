@@ -15,6 +15,6 @@ COPY src/ ./src/
 RUN mkdir /app/auth
 RUN mkdir /app/logs
 
-# CMD ["npm", "start"]
-CMD ["tail", "-f", "/dev/null"]
+CMD ["npm", "start"]
+# CMD ["tail", "-f", "/dev/null"]
 

@@ -5,6 +5,7 @@ services:
     hostname: whatsapp-helper-container
     volumes:
       - ./docker_dir:/app/auth
+      - ./logs:/app/logs
     stdin_open: true
     tty: true
     restart: always

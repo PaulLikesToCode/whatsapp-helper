@@ -14,10 +14,13 @@
   "author": "",
   "type": "commonjs",
   "main": "src/main.ts",
-"scripts": {
-  "start": "node ."
-},
+  "scripts": {
+    "start": "node ."
+  },
   "dependencies": {
+    "@another-trial/whatsapp-web.js": "^1.35.0-alpha.3",
+    "bunyan": "^1.8.15",
+    "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.34.2"
   }
