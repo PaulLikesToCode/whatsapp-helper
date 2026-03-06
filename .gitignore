@@ -5,3 +5,6 @@ logs/
 model/training_data/
 model/test_data/
 *.joblib
+summerizer/summarizer.log
+.DS_Store
+summerizer/summerizer.log
