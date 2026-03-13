@@ -8,3 +8,5 @@ model/test_data/
 summerizer/summarizer.log
 .DS_Store
 summerizer/summerizer.log
+hf-cache
+whatsapp-helper-node.tar

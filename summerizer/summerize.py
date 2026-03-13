@@ -4,13 +4,17 @@ import os
 import logging
 import glob
 import json
+import sys
+from datetime import datetime
+sys.path.append('../')
+from util.emailer import Emailer
 
 # Configure logger
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('summerizer.log'),
+        logging.FileHandler('../logs/summerizer.log'),
         logging.StreamHandler()
     ]
 )
@@ -18,6 +22,12 @@ logger = logging.getLogger(__name__)
 
 # Get model name from environment variables
 MODEL_NAME = os.getenv('MODEL_NAME', 'google/gemma-1.1-2b-it')
+
+# Get Hugging Face token from environment variables
+HF_TOKEN = os.getenv('HF_TOKEN')
+
+# Set cache directory (optional - useful for volume mounting)
+CACHE_DIR = os.getenv('HF_HOME', '/app/huggingface_cache')
 
 # 1. Use BERT NER model for named entity recognition
 # model_name = "dslim/bert-base-ner"
@@ -29,10 +39,11 @@ logger.info(f"Loading model: {model_name}")
 # ner_pipeline = pipeline("ner", model=model_name, tokenizer=model_name, aggregation_strategy="simple")
 
 # google's gemma 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, cache_dir=CACHE_DIR)
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
-    torch_dtype=torch.bfloat16
+    torch_dtype=torch.bfloat16,
+    cache_dir=CACHE_DIR
 )
 
 
@@ -57,12 +68,18 @@ if log_files:
                     if 'sender' in log_entry and 'body' in log_entry:
                         formatted_message = f'"sender": "{log_entry["sender"]}", "body": "{log_entry["body"]}"'
                         all_text += formatted_message + "\n"
+
                 except json.JSONDecodeError:
                     # Skip invalid JSON lines
                     logger.error(f'couldnt load json: {line}')
                     continue
     
     logger.info(f"All files read successfully. Total text length: {len(all_text)} characters")
+    
+    # Check if there's enough content to summarize
+    if len(all_text) < 10:
+        logger.info("Not enough content to summarize (less than 10 characters). Exiting gracefully.")
+        exit(0)
     
     logger.info("Generating summary...")
     
@@ -96,7 +113,28 @@ Please provide a concise summary of the following WhatsApp messages. Focus on th
     logger.info("Summary generation completed successfully")
     
     formatted_output = f"\n{'='*50}\nWHATSAPP MESSAGES SUMMARY\n{'='*50}\n{summary}\n{'='*50}\n"
-    print(formatted_output)
+    logger.info(formatted_output)
+    # email to recipients. TODO: Allow emails by group. 
+    to_email = os.getenv('EMAIL_ADDRESS')
+    
+    # Get nicely formatted date
+    formatted_date = datetime.now().strftime("%B %d, %Y")
+
+    if not to_email:
+        logger.error('no to email set')
+        sys.exit(1)
+    emailer = Emailer("localhost", 25)
+
+    emailer.send(
+        sender="hello@whatsapp.helper",
+        recipients=[to_email],
+        subject=f'Whatsapp summary for {formatted_date}',
+        body=formatted_output
+    )
+
+
+    
+    
         
 else:
     logger.error(f"No log files found matching pattern '../logs/messages.log.*'")

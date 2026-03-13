@@ -1,6 +1,7 @@
 IMAGE_NAME = whatsapp-helper
 TAG = latest
 FULL_IMAGE = $(IMAGE_NAME):$(TAG)
+NODE_IMAGE = $(IMAGE_NAME)-node:$(TAG)
 
 .PHONY: build run push clean
 
@@ -19,4 +20,8 @@ push:
 # Remove the local Docker image
 clean:
 	docker rmi -f $(FULL_IMAGE)
+
+# Build the Docker image just for the node application
+build-node:
+	docker build -f Dockerfile.node -t $(NODE_IMAGE) .
 

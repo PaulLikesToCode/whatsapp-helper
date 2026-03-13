@@ -1,0 +1,22 @@
+FROM node:25.1.0
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+WORKDIR /app
+
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+
+RUN apt-get update && \
+    apt-get install -y chromium && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY package*.json ./
+
+RUN npm install && npm cache clean --force
+
+COPY src/ ./src/
+
+RUN mkdir /app/auth
+RUN mkdir /app/logs
+
+CMD ["npm", "start"]
