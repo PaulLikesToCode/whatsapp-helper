@@ -9,7 +9,7 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
-    mem_limit: 600m
+    mem_limit: 800m
     shm_size: "256m"
     environment: 
       - NODE_ENV=production # Recommended for Chromium stability 

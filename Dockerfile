@@ -1,3 +1,7 @@
+## Initial work was putting the node and python work in the same image. 
+## Moving away from this in favor of task specific images. See Dockerfile.node for the whatsapp-helper image. 
+## Keeping this for reference. 
+
 FROM node:25.1.0
 
 ENV DEBIAN_FRONTEND=noninteractive
