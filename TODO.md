@@ -5,3 +5,5 @@
 * Models from HuggingFace are between 7 and 16MB. I don't want to continuously run a server with that much memory just for this 1 task. Investigate cheaper options to run different models to summerize the messages. 
 
 * Add monitoring/alerting. 
+
+* Once a message has been successfully emailed, mark it as such so it doesn't get emailed twice. Possibly use a timestamp to check last successful email. 
