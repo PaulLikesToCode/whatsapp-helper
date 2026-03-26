@@ -21,30 +21,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Get model name from environment variables
-MODEL_NAME = os.getenv('MODEL_NAME', 'google/gemma-1.1-2b-it')
+# google/gemma-1.1-2b-it requires too much RAM, making google/t5-efficient-tiny default
+MODEL_NAME = os.getenv('MODEL_NAME', 'google/t5-efficient-tiny')
 
 # Get Hugging Face token from environment variables
 HF_TOKEN = os.getenv('HF_TOKEN')
 
 # Set cache directory (optional - useful for volume mounting)
-CACHE_DIR = os.getenv('HF_HOME', '/app/huggingface_cache')
+# CACHE_DIR = os.getenv('HF_HOME', '/app/huggingface_cache')
 
-# 1. Use BERT NER model for named entity recognition
-# model_name = "dslim/bert-base-ner"
-model_name = MODEL_NAME
+logger.info(f"Loading model: {MODEL_NAME}")
 
-logger.info(f"Loading model: {model_name}")
+summarizer = pipeline("summarization", model=MODEL_NAME, token=HF_TOKEN)
 
-# 2. Create a pipeline for named entity recognition (for use with bert)
-# ner_pipeline = pipeline("ner", model=model_name, tokenizer=model_name, aggregation_strategy="simple")
-
-# google's gemma 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, cache_dir=CACHE_DIR)
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    torch_dtype=torch.bfloat16,
-    cache_dir=CACHE_DIR
-)
+# google's gemma, keeping for reference but using pipeline
+# tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, token=HF_TOKEN, cache_dir=CACHE_DIR)
+# model = AutoModelForCausalLM.from_pretrained(
+#     MODEL_NAME,
+#     torch_dtype=torch.bfloat16,
+#     token=HF_TOKEN,
+#     cache_dir=CACHE_DIR
+# )
 
 
 logger.info("model loaded successfully")
@@ -83,32 +80,34 @@ if log_files:
     
     logger.info("Generating summary...")
     
-    # Create a prompt for summarization
-    prompt = f"""<start_of_turn>user
-Please provide a concise summary of the following WhatsApp messages. Focus on the main topics discussed, key participants, and important information:
+    # Create a prompt for summarization - commenting out because I've moved to summerizer model.
+#     prompt = f"""<start_of_turn>user
+# Please provide a concise summary of the following WhatsApp messages. Focus on the main topics discussed, key participants, and important information:
 
-{all_text[:4000]}  # Limit input to avoid token limits
-<end_of_turn>
-<start_of_turn>model
-"""
+# {all_text[:4000]}  # Limit input to avoid token limits
+# <end_of_turn>
+# <start_of_turn>model
+# """
     
-    # Tokenize and generate summary
-    inputs = tokenizer(prompt, return_tensors="pt")
+    # Tokenize and generate summary for google gemma, above. Saving for future use. 
+    # inputs = tokenizer(prompt, return_tensors="pt")
     
-    with torch.no_grad():
-        outputs = model.generate(
-            **inputs,
-            max_new_tokens=500,
-            temperature=0.7,
-            do_sample=True,
-            pad_token_id=tokenizer.eos_token_id
-        )
+    # with torch.no_grad():
+    #     outputs = model.generate(
+    #         **inputs,
+    #         max_new_tokens=500,
+    #         temperature=0.7,
+    #         do_sample=True,
+    #         pad_token_id=tokenizer.eos_token_id
+    #     )
     
-    # Decode the response
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    # # Decode the response
+    # response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
-    # Extract just the model's response (after the prompt)
-    summary = response.split("<start_of_turn>model\n")[-1].strip()
+    # # Extract just the model's response (after the prompt)
+    # summary = response.split("<start_of_turn>model\n")[-1].strip()
+
+    summary = summarizer(all_text, max_length=100, min_length=30, do_sample=False, length_penalty=2.0, num_beams=4)
     
     logger.info("Summary generation completed successfully")
     

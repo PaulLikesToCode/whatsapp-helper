@@ -10,3 +10,6 @@ summerizer/summarizer.log
 summerizer/summerizer.log
 hf-cache
 whatsapp-helper-node.tar
+__pycache__/
+*.py[cod]
+*$py.class

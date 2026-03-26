@@ -1,11 +1,21 @@
 version: '3.8'
 services:
   whatsapp-helper:
-    image: whatsapp-helper:latest
-    hostname: whatsapp-helper-container
+    image: whatsapp-helper-node:latest
+    hostname: whatsapp-helper-node-container
     volumes:
       - ./docker_dir:/app/auth
       - ./logs:/app/logs
     stdin_open: true
     tty: true
-    restart: always
+    restart: unless-stopped
+    mem_limit: 600m
+    shm_size: "256m"
+    environment: 
+      - NODE_ENV=production # Recommended for Chromium stability 
+    cap_add: 
+      - SYS_ADMIN 
+    security_opt: 
+      - seccomp:unconfined
+    tmpfs: 
+      - /tmp:size=128m

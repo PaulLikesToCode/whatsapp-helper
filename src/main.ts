@@ -136,10 +136,16 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Listening to all incoming messages
 client.on('message_create', async (message: any) => {
-    const chat = await message.getChat();
-    const contact = await message.getContact();
-    messagesLogger.info({'ts': message.timestamp, 'chat': chat.name, 
-                         'sender': contact.pushname, 'body': message.body}) 
+    try {
+        const chat = await message.getChat();
+        const contact = await message.getContact();
+        messagesLogger.info({
+            'ts': message.timestamp, 'chat': chat.name,
+            'sender': contact.pushname, 'body': message.body
+        });
+    } catch (err: any) {
+        appLogger.warn('Failed to process message (page likely navigated):', err.message);
+    }
 });
 
 // Start your client
